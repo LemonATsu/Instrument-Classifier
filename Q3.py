@@ -1,7 +1,7 @@
 import numpy, librosa, os, time, csv, random, sys
 from sklearn import svm
 from numpy import genfromtxt
-from train import trainModel
+from train import trainSVMModel, trainKNNModel
 
 def listFile(path):
     list = []
@@ -21,11 +21,11 @@ def listFile(path):
     
     return list
 
-def extractMFCC(y, sr, w, h):
-    S = librosa.feature.melspectrogram(y=y, sr=sr, n_mels=256, n_fft=w, hop_length=h)
-    mfccs = librosa.feature.mfcc(S=librosa.logamplitude(S))
+def extractMFCC(y, sr, w, h, n_mfcc):
+    S = librosa.feature.melspectrogram(y=y, sr=sr, n_mels=256, n_fft=w, hop_length=h, fmax=8000)
+    mfccs = librosa.feature.mfcc(y=y, sr=sr, S=librosa.logamplitude(S), n_mfcc=n_mfcc)
     # features = [numpy.mean(mfccs), numpy.std(mfccs)]
-    features = mfccs
+    features = numpy.append(numpy.mean(mfccs, axis=1), numpy.std(mfccs, axis=1))
     return features
 
 def testExtractMFCC():
@@ -80,9 +80,10 @@ def readCSV():
 
 if __name__ == '__main__':
     start = time.clock()
-    w = 4096
-    h = 2048
-    
+    w = 2048
+    h = 1024
+    n_mfcc = 30  
+ 
     if len(sys.argv) >= 2 and sys.argv[1] == 'r':
         print('read from .csv ..')
         features_set = readCSV()
@@ -98,10 +99,10 @@ if __name__ == '__main__':
         for s in range(0, 4):
             songs = training_set[s]
             for song in songs:
-                x = extractMFCC(song[0], song[1], w, h)
+                x = extractMFCC(song[0], song[1], w, h, n_mfcc)
                 features_set.append(x)
         writeCSV(features_set)
-    
+
     print('finish loading features.')
     # count the number of training and validation set
     ans = [(i/(len(features_set)/4)+ 1) for i in range(0, 800)]
@@ -131,14 +132,16 @@ if __name__ == '__main__':
     eps = 7./3 - 4./3 -1
     featMean = numpy.mean(XTrain)
     featStd  = numpy.std(XTrain)
-
     # normalize training set
-    XTrain = (XTrain - featMean) / (featStd + eps)
-    XValidation = (XValidation - featMean) / (featStd + eps)
+    # XTrain = (XTrain - featMean) / (featStd + eps)
+    # XValidation = (XValidation - featMean) / (featStd + eps)
 
-    XTrain = reshape(XTrain)
-    XValidation = reshape(XValidation)
+    #XTrain = reshape(XTrain)
+    #XValidation = reshape(XValidation)
     print('start training ...')
-    trainModel(XTrain, YTrain, XValidation, YValidation)
+    m, svm_score, c, g = trainSVMModel(XTrain, YTrain, XValidation, YValidation)
+    trainKNNModel(XTrain, YTrain, XValidation, YValidation)
     print('total time elapsed : %f' %(time.clock() - start))
+
+    print('best score : %f, with w : %d, h : %d, C : %f, G : %f' % (svm_score, w, h, c, g))
 
