@@ -29,5 +29,5 @@ for i in range(0, 2):
     #log_d = librosa.logamplitude(trans, ref_power=np.max)
 
     p = plt.figure(figsize=(12, 4))
-    librosa.display.specshow(log_d, sr=sr, y_axis='log', x_axis='time')
+    librosa.display.specshow(log_d, sr=sr, y_axis='linear', x_axis='time')
     p.savefig(f_name + '.png')

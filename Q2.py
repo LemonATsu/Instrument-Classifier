@@ -4,13 +4,14 @@ import matplotlib.pyplot as plt
 import IPython.display
 
 audio_path = []
-audio_path.append('../audio/guitar/001.wav')
-audio_path.append('../audio/piano/001.wav')
-audio_path.append('../audio/violin/001.wav')
-audio_path.append('../audio/voice/001.wav')
+audio_path.append('../audio/guitar/002.wav')
+audio_path.append('../audio/piano/002.wav')
+audio_path.append('../audio/violin/002.wav')
+audio_path.append('../audio/voice/002.wav')
 
 w_size = 1024
 h_size = 512
+picpath = './Q2/'
 
 # y for data, sr for sample rate.
 for i in range(0, 4):
@@ -21,5 +22,5 @@ for i in range(0, 4):
     p = plt.figure(figsize=(8, 4))
     librosa.display.specshow(d, sr=sr, y_axis='linear', x_axis='time')
     plt.title('Power spectrogram')
-    p.savefig(f_name)
+    p.savefig(picpath + f_name)
 
