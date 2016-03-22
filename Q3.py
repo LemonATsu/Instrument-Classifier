@@ -1,7 +1,11 @@
 import numpy, librosa, os, time, csv, random, sys
 from sklearn import svm
 from numpy import genfromtxt
-from train import trainSVMModel, trainKNNModel
+from train import trainSVMModel, trainKNNModel, trainQDA
+from sklearn.decomposition import PCA
+from sklearn.preprocessing import normalize
+from sklearn import cross_validation
+
 
 def listFile(path):
     list = []
@@ -22,10 +26,14 @@ def listFile(path):
     return list
 
 def extractMFCC(y, sr, w, h, n_mfcc):
-    S = librosa.feature.melspectrogram(y=y, sr=sr, n_mels=256, n_fft=w, hop_length=h, fmax=8000)
-    mfccs = librosa.feature.mfcc(y=y, sr=sr, S=librosa.logamplitude(S), n_mfcc=n_mfcc)
-    # features = [numpy.mean(mfccs), numpy.std(mfccs)]
+    D = numpy.abs(librosa.stft(y=y, n_fft=w, hop_length=h))**2
+    #S = librosa.feature.melspectrogram(y=y, sr=sr, n_mels=128, n_fft=w, hop_length=h, fmax=8000)
+    S = librosa.feature.melspectrogram(S=D, n_mels=128, n_fft=w, hop_length=h, fmax=8000)
+    #mfccs = librosa.feature.mfcc(y=y, sr=sr, S=librosa.logamplitude(S), n_mfcc=n_mfcc)
+    mfccs = librosa.feature.mfcc(S=librosa.logamplitude(S), n_mfcc=n_mfcc)
+    #mfccs = librosa.feature.delta(mfccs, order=2)
     features = numpy.append(numpy.mean(mfccs, axis=1), numpy.std(mfccs, axis=1))
+    #features = numpy.append(features, centroid[0])
     return features
 
 def testExtractMFCC():
@@ -78,11 +86,25 @@ def readCSV():
                 features_set.append(data)
     return features_set
 
+def analyzePCA(X, Y, n=15):
+    pca = PCA(n_components=n)
+    return pca.fit_transform(X, Y)
+
+def normalizeList(X, mean, std):
+    eps = 7./3 - 4./3 -1
+    norm = []
+
+    for d in X:
+        c = (d - mean) / std
+        norm.append(c)
+
+    return norm
+
 if __name__ == '__main__':
     start = time.clock()
     w = 2048
     h = 1024
-    n_mfcc = 30  
+    n_mfcc = 30 
  
     if len(sys.argv) >= 2 and sys.argv[1] == 'r':
         print('read from .csv ..')
@@ -99,6 +121,7 @@ if __name__ == '__main__':
         for s in range(0, 4):
             songs = training_set[s]
             for song in songs:
+                #x = extractMFCC(song[0], song[1], w, h, n_mfcc)
                 x = extractMFCC(song[0], song[1], w, h, n_mfcc)
                 features_set.append(x)
         writeCSV(features_set)
@@ -128,20 +151,37 @@ if __name__ == '__main__':
         XTrain.append(XY_SET[i][0])
         YTrain.append(XY_SET[i][1])
 
+    print('Train data : ')
+    print('guitar : %d' % YTrain.count(1))
+    print('piano  : %d' % YTrain.count(2))
+    print('violin : %d' % YTrain.count(3))
+    print('voice  : %d' % YTrain.count(4))
     # magic number to get machine eps
-    eps = 7./3 - 4./3 -1
-    featMean = numpy.mean(XTrain)
-    featStd  = numpy.std(XTrain)
+    featMean = numpy.mean(XTrain, axis=0)
+    featStd  = numpy.std(XTrain, axis=0)
     # normalize training set
-    # XTrain = (XTrain - featMean) / (featStd + eps)
-    # XValidation = (XValidation - featMean) / (featStd + eps)
+    XTrain = normalizeList(XTrain, featMean, featStd)
+    XValidation = normalizeList(XValidation, featMean, featStd)
+
 
     #XTrain = reshape(XTrain)
     #XValidation = reshape(XValidation)
     print('start training ...')
+    print('Validation data : ')
+    print('guitar : %d' % YValidation.count(1))
+    print('piano  : %d' % YValidation.count(2))
+    print('violin : %d' % YValidation.count(3))
+    print('voice  : %d' % YValidation.count(4))
+    
+
+
     m, svm_score, c, g = trainSVMModel(XTrain, YTrain, XValidation, YValidation)
     trainKNNModel(XTrain, YTrain, XValidation, YValidation)
+    trainQDA(XTrain, YTrain, XValidation, YValidation)
     print('total time elapsed : %f' %(time.clock() - start))
+    print('best score : %f, with w : %d, h : %d, C : %f, G : %f, n_mfcc : %d' % (svm_score, w, h, c, g, n_mfcc))
 
-    print('best score : %f, with w : %d, h : %d, C : %f, G : %f' % (svm_score, w, h, c, g))
+    features_set = normalizeList(features_set, numpy.mean(features_set, axis=0), numpy.std(features_set, axis=0))
 
+    avg = cross_validation.cross_val_score(m, features_set, ans, cv=10)
+    print(sum(avg) / len(avg))
