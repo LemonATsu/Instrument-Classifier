@@ -1,0 +1,22 @@
+best score : 0.912500, with w : 2048, h : 512, C : 10.000000, G : 0.000156
+best score : 0.893750, with w : 4096, h : 1024, C : 10.000000, G : 0.006250, n_mfcc : 80
+best score : 0.806250, with w : 4096, h : 512, C : 1.000000, G : 0.016667, n_mfcc : 30
+
+## reach .8 in avg n_mel = 512
+best score : 0.812500, with w : 2048, h : 512, C : 10.000000, G : 0.016667, n_mfcc : 30
+
+# reach .81875 in avg n_mel = 1024
+best score : 0.931250, with w : 2048, h : 512, C : 1.000000, G : 0.016667, n_mfcc : 30
+
+# reach .82 in avg n_mel = 1024
+score : 0.831250, with w : 4096, h : 2048, C : 1.000000, G : 0.016667, n_mfcc : 30
+
+# reach .8225 in avg n_mel = 2048
+score : 0.793750, with w : 4096, h : 1024, C : 1.000000, G : 0.016667, n_mfcc : 30
+
+# reach .9 n_mfcc = 60, but avg is around .84
+score : 0.912500, with w : 4096, h : 1024, C : 1000.000000, G : 0.008333, n_mfcc : 60
+
+# reache .846
+score : 0.843750, with w : 4096, h : 512, C : 1.000000, G : 0.008333, n_mfcc : 60
+
