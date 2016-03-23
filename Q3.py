@@ -27,11 +27,13 @@ def listFile(path):
 
 def extractMFCC(y, sr, w, h, n_mfcc):
     D = numpy.abs(librosa.stft(y=y, n_fft=w, hop_length=h))**2
+    
     #S = librosa.feature.melspectrogram(y=y, sr=sr, n_mels=128, n_fft=w, hop_length=h, fmax=8000)
-    S = librosa.feature.melspectrogram(S=D, n_mels=128, n_fft=w, hop_length=h, fmax=8000)
     #mfccs = librosa.feature.mfcc(y=y, sr=sr, S=librosa.logamplitude(S), n_mfcc=n_mfcc)
-    mfccs = librosa.feature.mfcc(S=librosa.logamplitude(S), n_mfcc=n_mfcc)
     #mfccs = librosa.feature.delta(mfccs, order=2)
+    
+    S = librosa.feature.melspectrogram(S=D, n_mels=2048, n_fft=w, hop_length=h, fmax=8000)
+    mfccs = librosa.feature.mfcc(S=librosa.logamplitude(S), n_mfcc=n_mfcc)
     features = numpy.append(numpy.mean(mfccs, axis=1), numpy.std(mfccs, axis=1))
     #features = numpy.append(features, centroid[0])
     return features
@@ -102,9 +104,9 @@ def normalizeList(X, mean, std):
 
 if __name__ == '__main__':
     start = time.clock()
-    w = 2048
-    h = 1024
-    n_mfcc = 30 
+    w = 4096
+    h = 2048
+    n_mfcc = 60 
  
     if len(sys.argv) >= 2 and sys.argv[1] == 'r':
         print('read from .csv ..')
@@ -175,13 +177,17 @@ if __name__ == '__main__':
     
 
 
-    m, svm_score, c, g = trainSVMModel(XTrain, YTrain, XValidation, YValidation)
+    clfs = trainSVMModel(XTrain, YTrain, XValidation, YValidation)
     trainKNNModel(XTrain, YTrain, XValidation, YValidation)
     trainQDA(XTrain, YTrain, XValidation, YValidation)
     print('total time elapsed : %f' %(time.clock() - start))
-    print('best score : %f, with w : %d, h : %d, C : %f, G : %f, n_mfcc : %d' % (svm_score, w, h, c, g, n_mfcc))
+    
 
     features_set = normalizeList(features_set, numpy.mean(features_set, axis=0), numpy.std(features_set, axis=0))
 
-    avg = cross_validation.cross_val_score(m, features_set, ans, cv=10)
-    print(sum(avg) / len(avg))
+    print('best 5 clfs')
+    for c in clfs:
+        print('score : %f, with w : %d, h : %d, C : %f, G : %f, n_mfcc : %d' % (c['score'], w, h, c['c'], c['g'], n_mfcc))
+        avg = cross_validation.cross_val_score(c['clf'], features_set, ans, cv=10)
+        print(avg)
+        print(sum(avg) / len(avg))
