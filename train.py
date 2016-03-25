@@ -6,9 +6,9 @@ from sklearn.qda import QDA
 
 
 def trainSVMModel(XTrain, YTrain, XValid, YValid):
-    Cs = [.1, 1, 10, 100, 500, 1000]
+    Cs = [1, 5, 10, 20, 100, 1000]
     g0 = 1 / float(len(XTrain[0]))
-    Gs = [g0, g0 / 10, g0 / 50, g0 / 70, g0 / 100]
+    Gs = [2*g0, g0, g0 / 10, g0 / 50, g0 / 70, g0 / 100]
     kernel = ['linear', 'poly', 'rbf', 'sigmoid']
     #best_accuracy = 0.0
     clfs = []
@@ -18,7 +18,7 @@ def trainSVMModel(XTrain, YTrain, XValid, YValid):
             clf = svm.SVC(C=Cs[c], probability=True,  gamma=Gs[g], kernel=kernel[2])            
             clf.fit(XTrain, YTrain)
             score = clf.score(XValid, YValid)
-            print("score : %f, c : %f, g : %f" % (score, Cs[c], Gs[g]))
+            #print("score : %f, c : %f, g : %f" % (score, Cs[c], Gs[g]))
             
             info = {'clf' : clf, 'score' : score, 'c' : Cs[c], 'g' : Gs[g]}
             clfs.append(info)
@@ -32,10 +32,6 @@ def trainSVMModel(XTrain, YTrain, XValid, YValid):
 
     # print("best score : %f, Cs : %f, Gs : %f" % (best_accuracy, bestC, bestG))
 
-    #XPred = best_model.predict(XValid);
-    #CTable = confusion_matrix(YValid, XPred)
-
-    #print(CTable)
 
     clfs = sorted(clfs, key=lambda k : k['score'], reverse=True)
 
