@@ -3,7 +3,7 @@ from sklearn import svm
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.metrics import confusion_matrix
 from sklearn.qda import QDA
-
+from sklearn.grid_search import GridSearchCV
 
 def trainSVMModel(XTrain, YTrain, XValid, YValid):
     Cs = [1, 5, 10, 20, 100, 1000]
@@ -18,23 +18,13 @@ def trainSVMModel(XTrain, YTrain, XValid, YValid):
             clf = svm.SVC(C=Cs[c], probability=True,  gamma=Gs[g], kernel=kernel[2])            
             clf.fit(XTrain, YTrain)
             score = clf.score(XValid, YValid)
-            #print("score : %f, c : %f, g : %f" % (score, Cs[c], Gs[g]))
+            print("score : %f, c : %f, g : %f" % (score, Cs[c], Gs[g]))
             
             info = {'clf' : clf, 'score' : score, 'c' : Cs[c], 'g' : Gs[g]}
             clfs.append(info)
-            """
-            if score > best_accuracy:
-                best_accuracy = score
-                best_model   = clf
-                bestC = Cs[c]
-                bestG = Gs[g]
-            """
-
-    # print("best score : %f, Cs : %f, Gs : %f" % (best_accuracy, bestC, bestG))
 
 
     clfs = sorted(clfs, key=lambda k : k['score'], reverse=True)
-
     return clfs[0:5]
 
 def trainKNNModel(XTrain, YTrain, XValid, YValid):

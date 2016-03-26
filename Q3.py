@@ -14,7 +14,7 @@ def listFile(path):
     for file in os.listdir(path):
         if file.endswith('.wav'):
             #list.append(scipy.io.wavfile.read(path + file))
-            list.append(librosa.load(path + file))
+            list.append(librosa.load(path + file, sr=16000))
             count = count + 1
             if count >= 200 :
                 break
@@ -31,7 +31,7 @@ def extractSpectral(y, sr, w, h):
 
 def extractMFCC(y, sr, w, h, n_mfcc):
     D = numpy.abs(librosa.stft(y=y, n_fft=w, hop_length=h))**2
-    S = librosa.feature.melspectrogram(S=D, n_mels=2048, n_fft=w, hop_length=h, fmax=8000)
+    S = librosa.feature.melspectrogram(S=D, n_mels=2835, n_fft=w, hop_length=h, fmax=8000)
     mfccs = librosa.feature.mfcc(S=librosa.logamplitude(S), n_mfcc=n_mfcc)
     return numpy.append(numpy.mean(mfccs, axis=1), numpy.std(mfccs, axis=1))
 
@@ -114,17 +114,17 @@ def normalizeList(X, mean, std):
     return norm
 
 def printCT(mat):
-    print('     GUT PIT VIT VOT')
-    print('GUP   ' + str(mat[0]))
-    print('PIP   ' + str(mat[1]))
-    print('VIP   ' + str(mat[2]))
-    print('VOP   ' + str(mat[3]))
+    print('     GUP PIP VIP VOP')
+    print('GUT   ' + str(mat[0]))
+    print('PIT   ' + str(mat[1]))
+    print('VIT   ' + str(mat[2]))
+    print('VOT   ' + str(mat[3]))
 if __name__ == '__main__':
     start = time.clock()
     w = 4096
     h = 2048
-    n_mfcc = 60
- 
+    n_mfcc = 80
+    sr = 16000 
     if len(sys.argv) >= 2 and sys.argv[1] == 'r':
         print('read from .csv ..')
         features_set = readCSV()
@@ -141,7 +141,7 @@ if __name__ == '__main__':
         for s in range(0, 5):
             songs = training_set[s]
             for song in songs:
-                x = extractFeatures(song[0], song[1], w, h, n_mfcc)
+                x = extractFeatures(song[0], sr, w, h, n_mfcc)
                 features_set.append(x)
         
         writeCSV(features_set)
@@ -220,7 +220,7 @@ if __name__ == '__main__':
 
         
     testPred = best_clf['clf'].predict(test_set)
-    numpy.savetxt('YtestPred.csv', testPred)
+    numpy.savetxt('YtestPred.csv', testPred, fmt='%i')
     print('output result to : \'YtestPred.csv\'')
     print('total time elapsed : %f' %(time.clock() - start))
 
