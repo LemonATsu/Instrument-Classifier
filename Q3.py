@@ -24,9 +24,22 @@ def listFile(path):
     
     return list
 
+def logAttack(y, sr, l_ratio, u_ratio):
+    pivot = numpy.max(numpy.abs(y))
+    l = l_ratio * pivot
+    u = u_ratio * pivot
+    s = -1
+   # print("p : %f, l : %f, u : %f" %(pivot, l, u))
+    for i in xrange(len(y)):
+        if s == -1 and numpy.abs(y[i]) > l:
+            s = i
+        if s != -1 and numpy.abs(y[i]) > u:
+    #        print('i : %f, s : %f, sr : %f' %(i ,s ,sr))
+            return numpy.log10((i - s) / float(sr))
+
 def extractSpectral(y, sr, w, h):
-    C = librosa.feature.spectral_centroid(y=y, sr=sr, n_fft=w, hop_length=h)
-    B = librosa.feature.spectral_bandwidth(y=y, sr=sr, n_fft=w, hop_length=h)
+    C = librosa.feature.spectral_centroid(y=y, sr=sr, n_fft=w/2, hop_length=h/2)
+    B = librosa.feature.spectral_bandwidth(y=y, sr=sr, n_fft=w/2, hop_length=h/2)
     return [C, B]
 
 def extractMFCC(y, sr, w, h, n_mfcc):
@@ -36,8 +49,8 @@ def extractMFCC(y, sr, w, h, n_mfcc):
     return numpy.append(numpy.mean(mfccs, axis=1), numpy.std(mfccs, axis=1))
 
 def extractTemporal(y, sr, w, h):
-    R = librosa.feature.rmse(y=y, n_fft=w, hop_length=h)   
-    Z = librosa.feature.zero_crossing_rate(y=y, frame_length=w, hop_length=h)
+    R = librosa.feature.rmse(y=y, n_fft=w/4, hop_length=h/4)   
+    Z = librosa.feature.zero_crossing_rate(y=y, frame_length=w/4, hop_length=h/4)
     return [R, Z]
 
 def extractFeatures(y, sr, w, h, n_mfcc):
@@ -48,6 +61,7 @@ def extractFeatures(y, sr, w, h, n_mfcc):
     features = numpy.append(features, numpy.std(T))
     features = numpy.append(features, numpy.mean(S))
     features = numpy.append(features, numpy.std(S))
+    features = numpy.append(features, logAttack(y, sr, 0.2, 0.8))
     return features
 
 def testExtractMFCC():
@@ -137,7 +151,8 @@ if __name__ == '__main__':
         list_test  = listFile('../audio/test/')
         training_set = [list_guitar, list_piano, list_violin, list_voice, list_test];
         features_set = []
-        
+        print('extracting features ...')
+        print(len(list_guitar))        
         for s in range(0, 5):
             songs = training_set[s]
             for song in songs:
