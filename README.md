@@ -9,3 +9,5 @@ or type
 <pre><code>python Q3.py r</code></pre>
 to read features data from pre-saved .csv file.
 
+The **python_code** folder should be place in the same directory of the audio folder, in order to read the audio file successfully
+
