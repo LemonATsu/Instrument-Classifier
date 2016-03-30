@@ -44,7 +44,7 @@ def extractSpectral(y, sr, w, h):
 
 def extractMFCC(y, sr, w, h, n_mfcc):
     D = numpy.abs(librosa.stft(y=y, n_fft=w, hop_length=h))**2
-    S = librosa.feature.melspectrogram(S=D, n_mels=2835, n_fft=w, hop_length=h, fmax=8000)
+    S = librosa.feature.melspectrogram(S=D, n_mels=2835, n_fft=w, hop_length=h, fmin=100, fmax=8000)
     mfccs = librosa.feature.mfcc(S=librosa.logamplitude(S), n_mfcc=n_mfcc)
     return numpy.append(numpy.mean(mfccs, axis=1), numpy.std(mfccs, axis=1))
 
@@ -85,9 +85,9 @@ def writeCSV(dataset):
         if i < div :
             fn = 'guitar/'
         elif i < div * 2:
-            fn = 'piano/'
-        elif i < div * 3:
             fn = 'violin/'
+        elif i < div * 3:
+            fn = 'piano/'
         elif i < div * 4:
             fn = 'voice/'
         else:
@@ -98,11 +98,11 @@ def writeCSV(dataset):
 
 def readCSV():
     featGuitar = './features/guitar/'
-    featPiano = './features/piano/'
     featViolin = './features/violin/'
+    featPiano = './features/piano/'
     featVoice = './features/voice/'
     featTest = './features/test/'
-    featDirList = [featGuitar, featPiano, featViolin, featVoice, featTest]
+    featDirList = [featGuitar, featViolin, featPiano, featVoice, featTest]
 
     features_set = []    
 
@@ -128,10 +128,10 @@ def normalizeList(X, mean, std):
     return norm
 
 def printCT(mat):
-    print('     GUP PIP VIP VOP')
+    print('     GUP VIP PIP VOP')
     print('GUT   ' + str(mat[0]))
-    print('PIT   ' + str(mat[1]))
-    print('VIT   ' + str(mat[2]))
+    print('VIT   ' + str(mat[1]))
+    print('PIT   ' + str(mat[2]))
     print('VOT   ' + str(mat[3]))
 if __name__ == '__main__':
     start = time.clock()
@@ -145,11 +145,11 @@ if __name__ == '__main__':
     else :
         print('read from .wav ..')
         list_guitar = listFile('../audio/guitar/')   
-        list_piano  = listFile('../audio/piano/')
         list_violin = listFile('../audio/violin/')
+        list_piano  = listFile('../audio/piano/')
         list_voice  = listFile('../audio/voice/')
         list_test  = listFile('../audio/test/')
-        training_set = [list_guitar, list_piano, list_violin, list_voice, list_test];
+        training_set = [list_guitar, list_violin, list_piano, list_voice, list_test];
         features_set = []
         print('extracting features ...')
         print(len(list_guitar))        
